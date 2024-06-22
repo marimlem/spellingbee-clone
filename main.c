@@ -181,8 +181,11 @@ int main(int argc, char *argv[]) {
 	t_wordlist *head = NULL;
 	int word_amount = 0;
     
-	if (argv[1] == NULL || argv[2] == NULL)
+	if (argc < 2 || argv[1] == NULL || argv[2] == NULL)
+	{
+		printf("Usage: %s <several chars that are allowed> <one char that is necessary in all words>\ne.g.: ./a.out otnaiy m\n", argv[0]);
 		return (1);
+	}
     fd = open("/usr/share/dict/american-english", O_RDONLY);
     if (fd == -1) {
         perror("open");
