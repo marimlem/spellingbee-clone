@@ -1,32 +1,20 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <string.h>
+#include "spellingbee-clone.h"
 
-typedef struct wordlist {
-	char *word;
-	int	found;
-	struct wordlist *next;
-} t_wordlist;
-
-void add_to_list(char *word, t_wordlist **head) {
+void add_to_list(char *word, t_data *data) {
 	t_wordlist *new_word = malloc(sizeof(t_wordlist));
 	new_word->word = strdup(word);
 	new_word->found = 0;
 	new_word->next = NULL;
 	
-	if (*head == NULL) {
-		*head = new_word;
+	if (data->head == NULL) {
+		data->head = new_word;
 	} else {
-		t_wordlist *current = *head;
+		t_wordlist *current = data->head;
 		while (current->next != NULL) {
 			current = current->next;
 		}
 		current->next = new_word;
 	}
-	
-	// free(word); // Free the allocated memory for the word string
 }
 
 int	word_with_chars(char *word, char *argv[])
@@ -149,66 +137,58 @@ int	input_handler(char *input, t_wordlist *head, int *words_left, int word_amoun
 }
 
 
-void	game_loop(t_wordlist *head, int word_amount)
+void	game_loop(t_data *data)
 {
-	t_wordlist *current = head;
+	t_wordlist *current = data->head;
 
 	char *input = NULL;
 	size_t len = 0;
 	ssize_t nread;
-	int words_left = word_amount;
+	int words_left = data->word_amount;
 	int var = 0;
 
 	while(1 && var != 1)
 	{
-		current = head;
+		current = data->head;
 		nread = getline(&input, &len, stdin);
 		if (nread == -1)
 			break;
 		if (input && input[0] != '\n')
-			var = input_handler(input, head, &words_left, word_amount);
+			var = input_handler(input, data->head, &words_left, data->word_amount);
 		free(input);
 		input = NULL;
 	}
 }
 
-	
+
+int	free_data(t_data *data, int ec)
+{
+	t_wordlist *current = data->head;
+	t_wordlist *next = NULL;
+	while (current)
+	{
+		next = current->next;
+		if (current->word)
+			free(current->word);
+		free(current);
+		current = next;
+	}
+	free(data);
+	return (ec);
+}
 
 int main(int argc, char *argv[]) {
-    int fd;
-    FILE *stream;
-    char *line = NULL;
-    size_t len = 0;
-    ssize_t nread;
-	t_wordlist *head = NULL;
-	int word_amount = 0;
-    
-	if (argc < 2 || argv[1] == NULL || argv[2] == NULL)
+	t_data *data;
+
+	data = malloc(sizeof(t_data));
+	if (data == NULL)
 	{
-		printf("Usage: %s <several chars that are allowed> <one char that is necessary in all words>\ne.g.: ./a.out otnaiy m\n", argv[0]);
+		perror("malloc");
 		return (1);
 	}
-    fd = open("/usr/share/dict/american-english", O_RDONLY);
-    if (fd == -1) {
-        perror("open");
-        exit(1);
-    }
-    stream = fdopen(fd, "r");
-    if (stream == NULL) {
-        perror("fdopen");
-        close(fd);
-        exit(1);
-    }
-    while ((nread = getline(&line, &len, stream)) != -1) {
-		if (strlen(line) > 4 && word_with_chars(line, argv) == 0)
-		{
-			add_to_list(line, &head);
-			word_amount++;
-		}
-    }
-
-	game_loop(head, word_amount);
-    free(line);
-    fclose(stream); // This also closes the file descriptor fd
-    return 0;
+	if (setup_game(argc, argv, data) == 1)
+		return (free_data(data, 1));
+	game_loop(data);
+    fclose(data->stream); // This also closes the file descriptor fd
+    return (free_data(data, 0));
 }
