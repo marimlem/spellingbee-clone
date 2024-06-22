@@ -25,6 +25,8 @@ void add_to_list(char *word, t_wordlist **head) {
 		}
 		current->next = new_word;
 	}
+	
+	// free(word); // Free the allocated memory for the word string
 }
 
 int	word_with_chars(char *word, char *argv[])
@@ -100,7 +102,7 @@ int	handle_options(char *input, t_wordlist *head, int words_left, int word_amoun
 		else
 			return 1;
 	}
-	if (strcmp(input, "-h\n") == 0)
+	else
 	{
 		printf("Commands:\n");
 		printf("  -q: quit\n");
@@ -114,12 +116,11 @@ int	handle_options(char *input, t_wordlist *head, int words_left, int word_amoun
 
 int	input_handler(char *input, t_wordlist *head, int *words_left, int word_amount)
 {
-	int var = 0;
 	t_wordlist *current = head;
-
-	var = handle_options(input, head, *words_left, word_amount);
-	if (var != 0)
-		return var;
+	if (input && input[0] == '-')
+	{
+		return (handle_options(input, head, *words_left, word_amount));
+	}
 	while (current && strcmp(input, current->word) != 0)
 	{
 		current = current->next;
@@ -164,7 +165,8 @@ void	game_loop(t_wordlist *head, int word_amount)
 		nread = getline(&input, &len, stdin);
 		if (nread == -1)
 			break;
-		var = input_handler(input, head, &words_left, word_amount);
+		if (input && input[0] != '\n')
+			var = input_handler(input, head, &words_left, word_amount);
 		free(input);
 		input = NULL;
 	}
