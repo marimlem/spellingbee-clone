@@ -24,8 +24,12 @@ I was also curious how to use Copilot, so these two things just came together ve
 - statistics of past games.
 - option to show given characters again.
 - option to shuffle given characters.
+- option to give information about unfound words (how many words of which length, how many pangrams, how many points in unfound words...)
+- pangram!
+- more detailed "wrong" message: "letter not in given characters", "word doesn't exist"
 
 ### bugs & chores
 - fix the leaks. 💀
 - distribute the functions over some more files.
 - have a .h file and Makefile for easy compilation and overview
+
